@@ -39,7 +39,7 @@ class Question
     #[ORM\Column]
     private int $votes = 0;
 
-    #[ORM\OneToMany('question', Answer::class)]
+    #[ORM\OneToMany('question', Answer::class, orphanRemoval: true)]
     private Collection $answers;
 
     #[ORM\ManyToOne(inversedBy: 'questions')]

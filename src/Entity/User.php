@@ -63,6 +63,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->answers = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return $this->getFullName();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -159,7 +164,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials()
     {
         // If you store any temporary, sensitive data on the user, clear it here
-         $this->plainPassword = null;
+        $this->plainPassword = null;
     }
 
     public function isEnabled(): bool
@@ -194,7 +199,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getFullName(): ?string
     {
-        return $this->firstName.' '.$this->lastName;
+        return $this->firstName . ' ' . $this->lastName;
     }
 
     public function getAvatar(): ?string
