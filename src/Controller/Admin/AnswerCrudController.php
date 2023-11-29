@@ -22,7 +22,8 @@ class AnswerCrudController extends AbstractCrudController
             IdField::new('id')
                 ->onlyOnIndex(),
             Field::new('answer'),
-            IntegerField::new('votes'),
+            IntegerField::new('votes')
+                ->setTemplatePath('admin/field/votes.html.twig'),
             AssociationField::new('question')
                 ->hideOnIndex(),
             AssociationField::new('answeredBy'),
