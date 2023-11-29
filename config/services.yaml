@@ -28,6 +28,6 @@ services:
 
   Psr\Log\LoggerInterface $mdLogger: "@monolog.logger.markdown"
 
-  App\EasyAdmin\TruncateLongTextConfigurator:
+  App\Controller\EasyAdmin\TruncateLongTextConfigurator:
     tags:
       - { name: ea.field_configurator, priority: -1 }
