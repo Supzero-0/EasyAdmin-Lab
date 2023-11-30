@@ -37,7 +37,17 @@ class QuestionCrudController extends AbstractCrudController
                 ->setSortable(false),
             AssociationField::new('topic'),
             TextareaField::new('question')
-                ->hideOnIndex(),
+                ->hideOnIndex()
+                ->setFormTypeOptions([
+                    'row_attr' => [
+                        'data-controller' => 'snarkdown',
+                    ],
+                    'attr' => [
+                        'data-snarkdown-target' => 'input',
+                        'data-action' => 'snarkdown#render'
+                    ],
+                ])
+                ->setHelp('Preview:'),
             VotesField::new('votes', 'Total Votes'),
             AssociationField::new('askedBy')
                 ->autocomplete()
