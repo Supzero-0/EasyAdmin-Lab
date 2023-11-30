@@ -5,13 +5,17 @@ namespace App\Controller\Admin;
 use App\Controller\EasyAdmin\VotesField;
 use App\Entity\Question;
 use Doctrine\DBAL\Query\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
+#[IsGranted('ROLE_MODERATOR')]
 class QuestionCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
@@ -23,6 +27,17 @@ class QuestionCrudController extends AbstractCrudController
     {
         return parent::configureCrud($crud)
             ->setDefaultSort(['askedBy.enabled' => 'DESC', 'createdAt' => 'DESC']);
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        return parent::configureActions($actions)
+            ->setPermission(Action::INDEX, 'ROLE_MODERATOR')
+            ->setPermission(Action::DETAIL, 'ROLE_MODERATOR')
+            ->setPermission(Action::EDIT, 'ROLE_MODERATOR')
+            ->setPermission(Action::NEW, 'ROLE_SUPER_ADMIN')
+            ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
+            ->setPermission(Action::BATCH_DELETE, 'ROLE_SUPER_ADMIN');
     }
 
     public function configureFields(string $pageName): iterable
@@ -48,11 +63,12 @@ class QuestionCrudController extends AbstractCrudController
                     ],
                 ])
                 ->setHelp('Preview:'),
-            VotesField::new('votes', 'Total Votes'),
+            VotesField::new('votes', 'Total Votes')
+                ->setPermission('ROLE_SUPER_ADMIN'),
             AssociationField::new('askedBy')
                 ->autocomplete()
-                ->formatValue(static function ($value, Question $question) {
-                    if (!$user = $question->getAskedBy()) {
+                ->formatValue(static function ($value, ?Question $question) {
+                    if (!$user = $question?->getAskedBy()) {
                         return null;
                     }
 
