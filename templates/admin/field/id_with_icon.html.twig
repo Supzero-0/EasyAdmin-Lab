@@ -1,9 +1,5 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
-	{% if field.value >= 0 %}
-	<span class="fas fa-thumbs-up text-success"/>
-{% else %}
-	<span class="fas fa-thumbs-down text-danger"/>
-{% endif %}
-{{ field.formattedValue }}
+{# this template is used to display Doctrine entity primary keys #}
+<span class="fa fa-key"/> {{include('@EasyAdmin/crud/field/id.html.twig')}}
