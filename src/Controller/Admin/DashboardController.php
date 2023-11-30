@@ -6,6 +6,7 @@ use App\Entity\Answer;
 use App\Entity\Question;
 use App\Entity\Topic;
 use App\Entity\User;
+use App\Repository\QuestionRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
@@ -18,14 +19,32 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
 
 class DashboardController extends AbstractDashboardController
 {
+    private QuestionRepository $questionRepository;
+    private ChartBuilderInterface $chartBuilder;
+
+    public function __construct(QuestionRepository $questionRepository, ChartBuilderInterface $chartBuilder)
+    {
+        $this->questionRepository = $questionRepository;
+        $this->chartBuilder = $chartBuilder;
+    }
+
     #[IsGranted('ROLE_ADMIN')]
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
-        return $this->render('admin/index.html.twig');
+        $latestQuestions = $this->questionRepository->findLatest();
+        $topVoted = $this->questionRepository->findTopVoted();
+
+        return $this->render('admin/index.html.twig', [
+            'latestQuestions' => $latestQuestions,
+            'topVoted' => $topVoted,
+            'chart' => $this->createChart(),
+        ]);
     }
 
     public function configureDashboard(): Dashboard
@@ -74,5 +93,33 @@ class DashboardController extends AbstractDashboardController
         // Need to rework the CSS of admin
         return parent::configureAssets()
             ->addWebpackEncoreEntry('admin');
+    }
+
+    public function createChart(): Chart
+    {
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
+
+        $chart->setData([
+            'labels' => ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+            'datasets' => [
+                [
+                    'label' => 'My First dataset',
+                    'backgroundColor' => 'rgb(255, 99, 132)',
+                    'borderColor' => 'rgb(255, 99, 132)',
+                    'data' => [0, 10, 5, 2, 20, 30, 45],
+                ],
+            ],
+        ]);
+
+        $chart->setOptions([
+            'scales' => [
+                'y' => [
+                    'suggestedMin' => 0,
+                    'suggestedMax' => 70,
+                ],
+            ],
+        ]);
+
+        return $chart;
     }
 }
