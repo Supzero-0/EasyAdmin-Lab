@@ -4,7 +4,9 @@ namespace App\Controller\Admin;
 
 use App\Controller\EasyAdmin\VotesField;
 use App\Entity\Question;
+use App\Entity\User;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -84,6 +86,8 @@ class QuestionCrudController extends AbstractCrudController
                 ->setFormTypeOption('by_reference', false),
             Field::new('createdAt')
                 ->hideOnForm(),
+            AssociationField::new('updatedBy')
+                ->onlyOnDetail(),
         ];
     }
 
@@ -94,5 +98,19 @@ class QuestionCrudController extends AbstractCrudController
             ->add('createdAt')
             ->add('votes')
             ->add('name');
+    }
+
+    // This method is called before persisting and updating entity instances
+    // It do the same as BlameableSubscriber but in a more elegant way
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw new \LogicException('Currently logged in user is not a User instance');
+        }
+
+        $entityInstance->setUpdatedBy($user);
+
+        parent::updateEntity($entityManager, $entityInstance);
     }
 }
