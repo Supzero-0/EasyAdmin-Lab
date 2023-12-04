@@ -34,7 +34,7 @@ class AdminUserVoter extends Voter
         }
 
         if (!$subject instanceof User) {
-            throw new \LogicException('Subejct is not an instance of User?');
+            throw new \LogicException('Subject is not an instance of User');
         }
 
         // ... (check conditions and return true to grant permission) ...

@@ -8,6 +8,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
@@ -84,5 +85,14 @@ class QuestionCrudController extends AbstractCrudController
             Field::new('createdAt')
                 ->hideOnForm(),
         ];
+    }
+
+    public function configureFilters(Filters $filters): Filters
+    {
+        return parent::configureFilters($filters)
+            ->add('topic')
+            ->add('createdAt')
+            ->add('votes')
+            ->add('name');
     }
 }
