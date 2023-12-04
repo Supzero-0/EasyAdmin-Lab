@@ -25,6 +25,8 @@ class AnswerCrudController extends AbstractCrudController
             Field::new('answer'),
             VotesField::new('votes'),
             AssociationField::new('question')
+                ->autocomplete()
+                ->setCrudController(QuestionCrudController::class)
                 ->hideOnIndex(),
             AssociationField::new('answeredBy'),
             Field::new('createdAt')
