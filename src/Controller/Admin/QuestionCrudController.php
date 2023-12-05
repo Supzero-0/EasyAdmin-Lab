@@ -35,12 +35,19 @@ class QuestionCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         return parent::configureActions($actions)
+            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
+                $action->displayIf(static function (Question $question) {
+                    return !$question->getIsApproved();
+                });
+
+                return $action;
+            })
             ->setPermission(Action::INDEX, 'ROLE_MODERATOR')
             ->setPermission(Action::DETAIL, 'ROLE_MODERATOR')
             ->setPermission(Action::EDIT, 'ROLE_MODERATOR')
             ->setPermission(Action::NEW, 'ROLE_SUPER_ADMIN')
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
-            ->setPermission(Action::BATCH_DELETE, 'ROLE_SUPER_ADMIN');
+            ->disable(Action::BATCH_DELETE);
     }
 
     public function configureFields(string $pageName): iterable
@@ -112,5 +119,14 @@ class QuestionCrudController extends AbstractCrudController
         $entityInstance->setUpdatedBy($user);
 
         parent::updateEntity($entityManager, $entityInstance);
+    }
+
+    public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if ($entityInstance->getIsApproved()) {
+            throw new \Exception('Deleting approved questions is forbidden');
+        }
+
+        parent::deleteEntity($entityManager, $entityInstance);
     }
 }
