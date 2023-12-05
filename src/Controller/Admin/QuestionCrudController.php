@@ -34,6 +34,17 @@ class QuestionCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
+        $viewAction = function () {
+            return Action::new('view')
+                ->linkToUrl(function (Question $question) {
+                    return $this->generateUrl('app_question_show', [
+                        'slug' => $question->getSlug(),
+                    ]);
+                })
+                ->setIcon('fa fa-eye')
+                ->setLabel('View on site');
+        };
+
         return parent::configureActions($actions)
             ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
                 $action->displayIf(static function (Question $question) {
@@ -47,7 +58,9 @@ class QuestionCrudController extends AbstractCrudController
             ->setPermission(Action::EDIT, 'ROLE_MODERATOR')
             ->setPermission(Action::NEW, 'ROLE_SUPER_ADMIN')
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
-            ->disable(Action::BATCH_DELETE);
+            ->disable(Action::BATCH_DELETE)
+            ->add(Crud::PAGE_DETAIL, $viewAction()->addCssClass('btn btn-success'))
+            ->add(Crud::PAGE_INDEX, $viewAction());
     }
 
     public function configureFields(string $pageName): iterable
