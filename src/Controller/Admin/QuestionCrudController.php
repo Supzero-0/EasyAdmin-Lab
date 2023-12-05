@@ -11,11 +11,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 #[IsGranted('ROLE_MODERATOR')]
@@ -42,8 +44,21 @@ class QuestionCrudController extends AbstractCrudController
                     ]);
                 })
                 ->setIcon('fa fa-eye')
-                ->setLabel('View on site');
+                ->setLabel('View on site')
+                ->displayIf(static function (Question $question): bool {
+                    return $question->getIsApproved();
+                });
         };
+
+        $approvedAction = Action::new('approve')
+            ->addCssClass('btn btn-success')
+            ->setIcon('fa fa-check-circle')
+            ->displayAsButton()
+            ->setTemplatePath('admin/approve_action.html.twig')
+            ->linkToCrudAction('approve')
+            ->displayIf(static function (Question $question): bool {
+                return !$question->getIsApproved();
+            });
 
         return parent::configureActions($actions)
             ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
@@ -60,7 +75,8 @@ class QuestionCrudController extends AbstractCrudController
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
             ->disable(Action::BATCH_DELETE)
             ->add(Crud::PAGE_DETAIL, $viewAction()->addCssClass('btn btn-success'))
-            ->add(Crud::PAGE_INDEX, $viewAction());
+            ->add(Crud::PAGE_INDEX, $viewAction())
+            ->add(Crud::PAGE_DETAIL, $approvedAction);
     }
 
     public function configureFields(string $pageName): iterable
@@ -141,5 +157,24 @@ class QuestionCrudController extends AbstractCrudController
         }
 
         parent::deleteEntity($entityManager, $entityInstance);
+    }
+
+    public function approve(AdminContext $adminContext, EntityManagerInterface $entityManager, AdminUrlGenerator $adminUrlGenerator)
+    {
+        $question = $adminContext->getEntity()->getInstance();
+        if (!$question instanceof Question) {
+            throw new \LogicException('Entity is missing or not a Question');
+        }
+
+        $question->setIsApproved(true);
+        $entityManager->flush();
+
+        $targetUrl = $adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Action::DETAIL)
+            ->setEntityId($question->getId())
+            ->generateUrl();
+
+        return $this->redirect($targetUrl);
     }
 }
